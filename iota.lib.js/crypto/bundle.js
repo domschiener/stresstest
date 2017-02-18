@@ -33,7 +33,7 @@ Bundle.prototype.addEntry = function(signatureMessageLength, address, value, tag
 *
 *
 **/
-Bundle.prototype.addTrytes = function(signatureFragments) {
+Bundle.prototype.addTrytes = function() {
 
     var message;
     var emptySignatureFragment = '';
@@ -42,11 +42,11 @@ Bundle.prototype.addTrytes = function(signatureFragments) {
     for (var j = 0; emptySignatureFragment.length < 2187; j++) {
         emptySignatureFragment += '9';
     }
-
+    console.log(this.bundle);
     for (var i = 0; i < this.bundle.length; i++) {
 
         // Fill empty signatureMessageFragment
-        this.bundle[i].signatureMessageFragment = signatureFragments[i] ? signatureFragments[i] : emptySignatureFragment;
+        this.bundle[i].signatureMessageFragment = emptySignatureFragment;
 
         // Fill empty trunkTransaction
         this.bundle[i].trunkTransaction = emptyHash;

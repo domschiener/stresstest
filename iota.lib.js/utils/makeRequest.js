@@ -2,10 +2,9 @@ var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 var errors = require("../errors/requestErrors");
 
 
-function makeRequest(provider, token) {
+function makeRequest(provider) {
 
     this.provider = provider || "http://localhost:14265";
-    this.token = token;
 }
 
 /**
@@ -30,12 +29,7 @@ makeRequest.prototype.open = function() {
 
     var request = new XMLHttpRequest();
     request.open('POST', this.provider, true);
-    //request.setRequestHeader('Content-Type','application/json');
-
-    if (this.token) {
-        request.withCredentials = true;
-        request.setRequestHeader('Authorization', 'token ' + this.token);
-    }
+    request.setRequestHeader('Content-Type','application/json');
 
     return request;
 }
@@ -69,65 +63,6 @@ makeRequest.prototype.send = function(command, callback) {
 
         return callback(errors.invalidResponse(error));
     }
-}
-
-/**
-*   sends an http request to a specified host
-*
-*   @method sandboxSend
-*   @param {object} command
-*   @param {function} callback
-**/
-makeRequest.prototype.sandboxSend = function(job, callback) {
-
-    // Check every 15 seconds if the job finished or not
-    // If failed, return error
-
-    var newInterval = setInterval(function() {
-
-        var request = new XMLHttpRequest();
-
-        request.onreadystatechange = function() {
-
-            if (request.readyState === 4) {
-
-                var result;
-
-                // Prepare the result, check that it's JSON
-                try {
-
-                    result = JSON.parse(request.responseText);
-                } catch(e) {
-
-                    return callback(errors.invalidResponse(e));
-                }
-
-                if (result.status === "FINISHED") {
-
-                    var attachedTrytes = result.attachToTangleResponse.trytes;
-                    clearInterval(newInterval);
-
-                    return callback(null, attachedTrytes);
-
-                }
-                else if (result.status === "FAILED") {
-
-                    clearInterval(newInterval);
-                    return callback(new Error("Sandbox transaction processing failed. Please retry."))
-                }
-            }
-        }
-
-        try {
-            request.open('GET', job, true);
-            request.send(JSON.stringify());
-        } catch(error) {
-
-            return callback(new Error("No connection to Sandbox, failed with job: ", job));
-        }
-
-    }, 5000)
-
 }
 
 /**
